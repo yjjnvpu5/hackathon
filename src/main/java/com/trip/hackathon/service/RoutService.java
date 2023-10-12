@@ -7,10 +7,7 @@ import com.trip.hackathon.model.Scenery;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +46,25 @@ public class RoutService {
         List<Scenery> sortList = list.stream().sorted(Comparator.comparing(Scenery::getHot).reversed()).collect(Collectors.toList());
         aco.init(sortList,sortList.size()*2, minDay, maxDay);
         ArrayList<Route> routeList = aco.run(1000);
+        routeList.stream().forEach(route->{
+            route.setSceneryList(sortPoi(route.getSceneryList()));
+        });
         return routeList;
+    }
+
+    private ArrayList<Scenery> sortPoi(ArrayList<Scenery> sceneryList) {
+        ArrayList<Scenery> list=new ArrayList<>();
+        Map<String,String> saveMap =new HashMap<>();
+        Map<String, List<Scenery>> map = sceneryList.stream().collect(Collectors.groupingBy(Scenery::getCityId));
+        sceneryList.forEach(o->{
+            if(!saveMap.containsKey(o.getCityId())){
+                list.addAll(map.get(o.getCityId()));
+                saveMap.put(o.getCityId(),o.getCityName());
+            }
+        });
+        list.forEach(o->{
+            System.out.println(o.getCityName()+":"+o.getName() + " "+o.getVisitDay()+" ");
+        });
+        return list;
     }
 }

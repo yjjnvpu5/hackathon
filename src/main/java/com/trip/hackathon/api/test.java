@@ -22,6 +22,6 @@ public class test {
 
     @RequestMapping(method = RequestMethod.GET,value = "/route")
     public void testRoute(){
-        List<Route> route = routService.route(4.0, 6.0, Arrays.asList("2"), true);
+        List<Route> route = routService.route(4.0, 6.0, Arrays.asList("Japan"), false);
     }
 }

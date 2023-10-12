@@ -247,7 +247,7 @@ public class Ant {
 //		double gx = rho * Math.pow(1.0 / (10.0 + this.Q - viewCount), 1.0 / 3.0);
 		double fx = (1 - rho)*(10000.0 / (dis));
 		double gx =  rho * Math.pow(hot, 1.0/3.0);
-		this.length = fx + gx;
+		this.length = dis;
 
 	}
 }

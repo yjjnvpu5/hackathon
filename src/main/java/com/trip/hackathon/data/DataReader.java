@@ -32,7 +32,7 @@ public class DataReader {
                 scenery.setHot((int) (Double.parseDouble(values[5])*10));
                 scenery.setLng(Double.parseDouble(values[12]));
                 scenery.setLat(Double.parseDouble(values[13]));
-                scenery.setVisitDay(values[6].equals("NULL")?0.5:new BigDecimal(values[6]).divide(BigDecimal.valueOf(12),2, BigDecimal.ROUND_HALF_UP).doubleValue());
+                scenery.setVisitDay(values[6].equals("NULL")?0.5:new BigDecimal(values[6]).divide(BigDecimal.valueOf(24),2, BigDecimal.ROUND_HALF_UP).doubleValue());
                 sceneryList.add(scenery);
             }
         } catch (IOException e) {

@@ -147,7 +147,7 @@ public class ACO {
 						bestTour[j] = ants[i].getTour()[j];
 						tmpTour[j] = bestTour[j];
 						if (bestTour[j] != -1) {
-							System.out.print(sceneList.get(bestTour[j]).getName() + " "+sceneList.get(bestTour[j]).getVisitDay()+" ");
+							//System.out.print(sceneList.get(bestTour[j]).getCityName()+":"+sceneList.get(bestTour[j]).getName() + " "+sceneList.get(bestTour[j]).getVisitDay()+" ");
 						}
 					}
 					antTourList.add(bestTour.clone());
