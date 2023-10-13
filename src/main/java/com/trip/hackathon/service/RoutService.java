@@ -39,9 +39,7 @@ public class RoutService {
         double[][] distance = DistanceUtil.distance(distanceMap, sortList);
         aco.init(sortList, 500, distance);
         aco.run(100);
-//        return aco.getResult();
-        aco.reportResult();
-        return null;
+        return aco.getResult();
     }
 
     private List<Scenery> getScenery(List<String> ids,boolean isCity, double minDay, double maxDay) {
