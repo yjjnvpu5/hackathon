@@ -55,10 +55,6 @@ public class ACO {
 	 */
 	double bestLength;
 
-	public ACO() {
-		this.maxDay = 3.0;
-	}
-
 	/**
 	 * 初始化蚁群
 	 * 
@@ -80,7 +76,7 @@ public class ACO {
 		// 初始化信息素
 		pheromone = new double[sceneCount];
 		score = new double[sceneCount];
-		
+
 		//select max hot of all scenery
 		this.Q = sceneList.get(0).getHot();
 		double disTop =0.0;
@@ -147,7 +143,7 @@ public class ACO {
 						bestTour[j] = ants[i].getTour()[j];
 						tmpTour[j] = bestTour[j];
 						if (bestTour[j] != -1) {
-							//System.out.print(sceneList.get(bestTour[j]).getCityName()+":"+sceneList.get(bestTour[j]).getName() + " "+sceneList.get(bestTour[j]).getVisitDay()+" ");
+							System.out.print(sceneList.get(bestTour[j]).getName() + " "+sceneList.get(bestTour[j]).getVisitDay()+" ");
 						}
 					}
 					antTourList.add(bestTour.clone());

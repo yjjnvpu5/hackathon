@@ -2,19 +2,19 @@ package com.trip.hackathon.algorithm;
 
 import com.trip.hackathon.data.DataReader;
 import com.trip.hackathon.model.*;
+import com.trip.hackathon.service.RoutService;
+import com.trip.hackathon.util.DistanceUtil;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MMASMain {
 
 	public static void main(String[] args) {
-		for (int i = 0; i < 1; i++) {
-			testOne();
-		}
+		testOne();
+//		RoutService routService=new RoutService();
+//		List<Route> route = routService.route(4.0, 6.0, Arrays.asList("Japan"), false);
+//		System.out.println();
 	}
 
 	public static void testOne() {
