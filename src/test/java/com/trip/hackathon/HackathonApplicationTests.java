@@ -52,8 +52,8 @@ class HackathonApplicationTests {
     @Test
     void testSplitRoute(){
         // 拆分路线
-        List<DayRouteInfoDTO> dayRouteInfoDTOList = dataInfoService.queryRoute(1L);
-        System.out.println(dayRouteInfoDTOList);
+        List<List<DayRouteInfoDTO>> multiRoutes = dataInfoService.queryRoute(1L);
+        System.out.println(multiRoutes);
     }
 
 }

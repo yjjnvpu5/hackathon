@@ -77,17 +77,24 @@ public class DataInfoService {
    * @param cityId
    * @return
    */
-  public List<DayRouteInfoDTO> queryRoute(Long cityId) {
+  public List<List<DayRouteInfoDTO>> queryRoute(Long cityId) {
     // 调用其炜哥接口拿路线List 先mock一下
-    List<Long> route = routeService.route(4.0, 6.0, Arrays.asList("Japan"), false);
-    if (route.isEmpty()) {
+    List<List<String>> multiRoutesString = routeService.route(4.0, 6.0, Arrays.asList("Japan"), false);
+    if (multiRoutesString.isEmpty()) {
       log.warn("无可用路线");
       return null;
     }
-    // 拆分路线
-    List<DayRouteInfoDTO> dayRouteInfoDTOList = splitRoute(route);
 
-    return dayRouteInfoDTOList;
+    List<List<DayRouteInfoDTO>> multiRoutes = new ArrayList<>();
+    // 多路线分别处理
+    multiRoutesString.stream().forEach(routeString -> {
+      List<Long> route = routeString.stream().map(stringId -> Long.parseLong(stringId)).collect(Collectors.toList());
+      List<DayRouteInfoDTO> dayRouteInfoDTOList = splitRoute(route);
+      multiRoutes.add(dayRouteInfoDTOList);
+    });
+
+
+    return multiRoutes;
   }
 
   /**
