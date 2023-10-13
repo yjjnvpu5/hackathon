@@ -27,7 +27,8 @@ public class Main {
 //		List<Long> result = aco.getResult();
 
 		RoutService routService=new RoutService();
-		List<Long> japan = routService.route(4.0, 4.0, Arrays.asList("Japan"), false);
+		routService.route(4.0, 5.0, Arrays.asList("Japan"), false);
+//		List<Long> japan = routService.route(4.0, 4.0, Arrays.asList("Japan"), false);
 		System.out.println();
 	}
 }

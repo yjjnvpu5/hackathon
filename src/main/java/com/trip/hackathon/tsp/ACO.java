@@ -132,10 +132,18 @@ public class ACO {
 		}
 	}
 
-	public List<Long> getResult() {
-		List<Long> res =new ArrayList<>();
+	public List<String> getResult() {
+		List<String> res =new ArrayList<>();
 		for (int j = 0; j < cityCount ; j++) {
-			res.add(Long.valueOf(city[bestTour[j]]));
+			res.add(city[bestTour[j]]);
+		}
+		return res;
+	}
+
+	public List<String> getResultName() {
+		List<String> res =new ArrayList<>();
+		for (int j = 0; j < cityCount ; j++) {
+			res.add(city[bestTour[j]]);
 		}
 		return res;
 	}
