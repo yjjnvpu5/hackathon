@@ -49,7 +49,7 @@ public class ACO {
 		this.antCount = antCount;
 		ants = new Ant[antCount];
 		distance = dis;
-		city = sceneryList.stream().map(Scenery::getPoid).collect(Collectors.toList()).toArray(new String[sceneryList.size()]);
+		city = sceneryList.stream().map(Scenery::getName).collect(Collectors.toList()).toArray(new String[sceneryList.size()]);
 		cityCount = city.length;
 		pheromone = new double[cityCount][cityCount];
 		for (int i = 0; i < cityCount; i++) {
@@ -136,6 +136,14 @@ public class ACO {
 		List<Long> res =new ArrayList<>();
 		for (int j = 0; j < cityCount ; j++) {
 			res.add(Long.valueOf(city[bestTour[j]]));
+		}
+		return res;
+	}
+
+	public List<String> getResultName() {
+		List<String> res =new ArrayList<>();
+		for (int j = 0; j < cityCount ; j++) {
+			res.add(city[bestTour[j]]);
 		}
 		return res;
 	}

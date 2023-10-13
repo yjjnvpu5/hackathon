@@ -28,21 +28,39 @@ public class RoutService {
         distanceMap = DataReader.readDis("./热门城市部分小交通信息0926v1.csv");
     }
 
-    public List<Long> route(double minDay, double maxDay, List<String> ids, boolean isCity) {
+    public List<List<String>> route(double minDay, double maxDay, List<String> ids, boolean isCity) {
+        Map<String,Integer> visitCityMap =new HashMap<>();
+        if(isCity){
+            return Collections.singletonList(handleOneWay(visitCityMap,minDay, maxDay, ids, isCity));
+        }
+        List<List<String>> list=new ArrayList<>();
+        for (int i = 0; i <3 ; i++) {
+            List<String> way = handleOneWay(visitCityMap,minDay, maxDay, ids, isCity);
+            if(!CollectionUtils.isEmpty(way)){
+                list.add(way);
+            }
+        }
+        return list;
+    }
+
+
+    public List<String> handleOneWay(Map<String,Integer> visitCityMap,double minDay, double maxDay, List<String> ids, boolean isCity) {
         if (CollectionUtils.isEmpty(sceneryList)) {
             init();
         }
         ACO aco = new ACO();
-        List<Scenery> list = getScenery(ids,isCity, minDay, maxDay);
-
+        List<Scenery> list = getScenery(visitCityMap,ids,isCity, minDay, maxDay);
+        if(CollectionUtils.isEmpty(list)){
+            return Collections.emptyList();
+        }
         List<Scenery> sortList = list.stream().sorted(Comparator.comparing(Scenery::getHot).reversed()).collect(Collectors.toList());
         double[][] distance = DistanceUtil.distance(distanceMap, sortList);
         aco.init(sortList, 500, distance);
         aco.run(100);
-        return aco.getResult();
+        return aco.getResultName();
     }
 
-    private List<Scenery> getScenery(List<String> ids,boolean isCity, double minDay, double maxDay) {
+    private List<Scenery> getScenery(Map<String,Integer> visitCityMap,List<String> ids,boolean isCity, double minDay, double maxDay) {
         List<Scenery> list = new ArrayList<>();
         if (isCity) {
             ids.forEach(id -> {
@@ -57,23 +75,52 @@ public class RoutService {
             });
         }
         List<Scenery> sortList = list.stream().sorted(Comparator.comparing(Scenery::getHot).reversed()).collect(Collectors.toList());
-        return choicePoi(sortList,minDay,maxDay,isCity);
+        return choicePoi(visitCityMap,sortList,minDay,maxDay,isCity);
     }
 
-    private List<Scenery> choicePoi(List<Scenery> sceneryList, double minDay, double maxDay, boolean isCity) {
+    private List<Scenery> choicePoi(Map<String,Integer> visitCityMap,List<Scenery> sceneryList, double minDay, double maxDay, boolean isCity) {
         List<Scenery> list=new ArrayList<>();
+        int selectCity =0;
+        for (int i = 0; i < sceneryList.size(); i++) {
+            if(!visitCityMap.containsKey(sceneryList.get(i).getCityId())){
+                selectCity =i;
+                visitCityMap.put((sceneryList.get(i).getCityId()),1);
+                break;
+            }
+        }
         double[][] distance = DistanceUtil.distance(distanceMap, sceneryList);
         double day=0.0;
+        int cityNum =0;
+        int num =0;
+        Map<String,Integer> map =new HashMap<>();
         for (int i = 0; i <sceneryList.size() ; i++) {
-            if(distance[0][i]<150000*minDay){
-                day +=sceneryList.get(i).getVisitDay();
-                if(day>maxDay/2.5){
-                    break;
+            if(distance[selectCity][i]<50000*minDay){
+                String poid = sceneryList.get(i).getCityId();
+                if(map.containsKey(poid)){
+                    if(day>maxDay/2.5){
+                        break;
+                    }
+                    if(num<maxDay ||map.get(poid)*2<num){
+                        day +=sceneryList.get(i).getVisitDay();
+                        list.add(sceneryList.get(i));
+                        map.put(poid,map.get(poid)+1);
+                        num++;
+                    }
+
+                }else {
+                    if(cityNum <2){
+                        cityNum++;
+                        day +=sceneryList.get(i).getVisitDay();
+                        list.add(sceneryList.get(i));
+                        map.put(poid,1);
+                        num++;
+                        visitCityMap.put(sceneryList.get(i).getCityId(),1);
+                    }
                 }
-                list.add(sceneryList.get(i));
             }
         }
         return list;
     }
+
 
 }
