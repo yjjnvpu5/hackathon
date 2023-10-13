@@ -57,7 +57,7 @@ public class DataInfoService {
   private static Map<Long, Map<Long, PoiTrafficInfo>> poiTrafficInfoMap;
 
   /**
-   * 初始化载入
+   * 载入
    */
   static {
     ObjectMapper mapper = new ObjectMapper();
@@ -79,31 +79,26 @@ public class DataInfoService {
    */
   public List<DayRouteInfoDTO> queryRoute(Long cityId) {
     // 调用其炜哥接口拿路线List 先mock一下
-    List<Route> route = routeService.route(4.0, 6.0, Arrays.asList("Japan"), false);
+    List<Long> route = routeService.route(4.0, 6.0, Arrays.asList("Japan"), false);
     if (route.isEmpty()) {
       log.warn("无可用路线");
       return null;
     }
-    // 取第一条母路线作为默认路线
-    Route defaultRoute = route.get(0);
-    ArrayList<Scenery> sceneryList = defaultRoute.getSceneryList();
     // 拆分路线
-    List<DayRouteInfoDTO> dayRouteInfoDTOList = splitRoute(sceneryList);
-
+    List<DayRouteInfoDTO> dayRouteInfoDTOList = splitRoute(route);
 
     return dayRouteInfoDTOList;
   }
 
   /**
-   * 整体路线按天拆分
+   * 整体路线按天拆分并填充信息-其炜接口
    */
-  private List<DayRouteInfoDTO> splitRoute(ArrayList<Scenery> sceneryList) {
+  private List<DayRouteInfoDTO> splitRoute(List<Long> sceneryList) {
     // 总路线列表
     List<DayRouteInfoDTO> dayRouteList = new ArrayList<>();
 
     List<PoiInfo> poiList = sceneryList.stream().map(scenery -> {
-      String poiId = scenery.getPoid();
-      PoiInfo poiInfo = poiInfoMap.getOrDefault(Long.parseLong(poiId), null);
+      PoiInfo poiInfo = poiInfoMap.getOrDefault(scenery, null);
       return poiInfo;
     }).filter(poiInfo -> poiInfo != null)
         // 游玩时间有问题的直接在这一步就过滤掉
@@ -151,7 +146,8 @@ public class DataInfoService {
 
           avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
 
-          PoiTrafficInfo poiTrafficInfo = poiTrafficInfoMap.get(poiInfo.getPoiId()).getOrDefault(nextPoiInfo.getPoiId(),null);
+          PoiTrafficInfo poiTrafficInfo =
+              poiTrafficInfoMap.get(poiInfo.getPoiId()).getOrDefault(nextPoiInfo.getPoiId(), null);
           Long driveTime;
           if (poiTrafficInfo != null) {
             driveTime = poiTrafficInfo.getDriveTime();
@@ -168,6 +164,39 @@ public class DataInfoService {
         dayRouteList.add(singlePoiDayRoute);
         dayCount++;
       }
+    }
+    return dayRouteList;
+  }
+
+  /**
+   * 基于按天拆分好的路线填充信息-德储接口
+   * 
+   * @return
+   */
+  private List<DayRouteInfoDTO> fillRouteDetails(List<List<Long>> sceneryList) {
+    // 总路线列表
+    List<DayRouteInfoDTO> dayRouteList = new ArrayList<>();
+
+    for (int i = 0; i < sceneryList.size(); i++) {
+      // 获取第i+1天下的景点信息列表
+      List<PoiInfo> poiIdList = sceneryList.get(i).stream().map(id -> {
+        PoiInfo poiInfo = poiInfoMap.getOrDefault(id, null);
+        return poiInfo;
+      }).filter(poiInfo -> poiInfo != null).collect(Collectors.toList());
+
+      // 对每一天下包含的POI列表进行填充
+      List<POI> poiDetailList = new ArrayList<>();
+      for (int j = 0; j < poiIdList.size(); j++) {
+        PoiInfo poiInfo = poiIdList.get(j);
+        PoiInfo nextPoiInfo = j == poiIdList.size() - 1 ? null : poiIdList.get(j + 1);
+        poiDetailList.add(poiMapper(poiInfo, nextPoiInfo));
+      }
+
+      DayRouteInfoDTO dayRouteInfoDTO = new DayRouteInfoDTO();
+      dayRouteInfoDTO.setTitle(generateTitle(i+1));
+      dayRouteInfoDTO.setName(generateCityName(poiDetailList));
+      dayRouteInfoDTO.setDetail(poiDetailList);
+      dayRouteList.add(dayRouteInfoDTO);
     }
     return dayRouteList;
   }
@@ -209,7 +238,7 @@ public class DataInfoService {
       return null;
     }
     PoiTrafficInfo poiTrafficInfo = poiTrafficInfoMap.get(info.getPoiId()).get(next.getPoiId());
-    if(poiTrafficInfo == null){
+    if (poiTrafficInfo == null) {
       return null;
     }
     Traffic traffic = new Traffic();
