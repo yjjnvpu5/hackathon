@@ -57,7 +57,7 @@ public class RoutService {
         double[][] distance = DistanceUtil.distance(distanceMap, sortList);
         aco.init(sortList, 500, distance);
         aco.run(100);
-        return aco.getResultName();
+        return aco.getResult();
     }
 
     private List<Scenery> getScenery(Map<String,Integer> visitCityMap,List<String> ids,boolean isCity, double minDay, double maxDay) {
