@@ -29,10 +29,10 @@ public class DataReader {
                 scenery.setName(values[3]);
                 scenery.setCityName(values[1]);
                 scenery.setCityId(values[0]);
-                scenery.setHot((int) (Double.parseDouble(values[5])*10));
+                scenery.setHot((int) (Double.parseDouble(values[5])*1000));
                 scenery.setLng(Double.parseDouble(values[12]));
                 scenery.setLat(Double.parseDouble(values[13]));
-                scenery.setVisitDay(values[6].equals("NULL")?0.5:new BigDecimal(values[6]).divide(BigDecimal.valueOf(24),2, BigDecimal.ROUND_HALF_UP).doubleValue());
+                scenery.setVisitDay(values[6].equals("NULL")?0.5:new BigDecimal(values[6]).divide(BigDecimal.valueOf(24),3, BigDecimal.ROUND_HALF_UP).doubleValue());
                 sceneryList.add(scenery);
             }
         } catch (IOException e) {
@@ -58,6 +58,24 @@ public class DataReader {
                   countryList.add(values[2]);
                   map.put(values[1],countryList);
               }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    public static Map<String,String> readDis(String filename) {
+        Map<String,String> map =new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                /**
+                 *出发poiid	到达poiid	驾车距离	驾车时间	公交距离	公交时间	步行距离	步行时间
+                 * 0           1            2      3
+                 */
+                map.put(values[0]+"_"+values[1],values[2]);
             }
         } catch (IOException e) {
             e.printStackTrace();

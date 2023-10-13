@@ -106,7 +106,7 @@ public class Ant {
 			tour[i] = -1;
 			p[i] = 0.0;
 		}
-		int random = 0;
+		int random = new Random(System.currentTimeMillis()).nextInt(count);
 		p[random] = 0.0;
 		tabu[random] = 1;
 		tour[0] = random;
@@ -155,12 +155,27 @@ public class Ant {
 		if(select==-1){
 			return false;
 		}
+		Scenery lastScen = this.sceneryList.get(tour[index - 1]);
+		Scenery scen = this.sceneryList.get(select);
+		for (int i = 0; i <4 ; i++) {
+			double time =DistanceUtil.getDistance(lastScen.getLng(),lastScen.getLat(),scen.getLng(),scen.getLat())/1000/55/24;
+			if(time>scen.getVisitDay()*2){
+				select = getRandomCity(p);
+				if(select==-1){
+					return false;
+				}
+				scen = this.sceneryList.get(select);
+			}else {
+				break;
+			}
+		}
+
 		double day = this.sceneryList.get(select).getVisitDay();
 		// 检查当前路线的游玩时间是否合法
 //		if(day<0.05){
 //			return false;
 //		}
-		if (this.curVisitDay + day > maxDay) {
+		if ((this.curVisitDay + day) > maxDay/2.5) {
 			return false;
 		}
 		this.curVisitDay += day;
@@ -189,37 +204,12 @@ public class Ant {
 		return -1;
 	}
 
-//	/**
-//	 * 计算蚂蚁当前走过的距离总和
-//	 *
-//	 */
-//	public void calcTourLength(List<Scenery> sceneList) {
-//		length = 0;
-//		double viewCount = 0.0;
-//		double days = 0.0;
-//		for (int i = 0; i < count; i++) {
-//			int tourId = tour[i];
-//			if (tourId == -1) {
-//				break;
-//			}
-//			Scenery scene = sceneList.get(tourId);
-//			viewCount += scene.getHot();
-//			days += scene.getVisitDay();
-//		}
-//
-//		if (days <= minDay || days > maxDay) {
-//			return;
-//		}
-//
-//	}
-
 	/**
 	 * 计算蚂蚁当前走过的距离总和
 	 *
 	 */
 	public void calcTourLength(List<Scenery> sceneList) {
 		length = 0;
-		double hot = 0.0;
 		double days = 0.0;
 		double dis = 0.0;
 		double lng = 0.0;
@@ -230,7 +220,6 @@ public class Ant {
 				break;
 			}
 			Scenery scene = sceneList.get(tourId);
-			hot += scene.getHot();
 			days += scene.getVisitDay();
 			if(i != 0){
 				dis += DistanceUtil.getDistance(lng, lat, scene.getLng(), scene.getLat());
@@ -242,11 +231,6 @@ public class Ant {
 		if (days <= minDay || days > maxDay) {
 			return;
 		}
-		double rho = 0.9;
-//		double fx = (1.0 - rho) * Math.pow(1.0 / (10.0 + price), 1.0);
-//		double gx = rho * Math.pow(1.0 / (10.0 + this.Q - viewCount), 1.0 / 3.0);
-		double fx = (1 - rho)*(10000.0 / (dis));
-		double gx =  rho * Math.pow(hot, 1.0/3.0);
 		this.length = dis;
 
 	}
