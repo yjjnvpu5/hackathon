@@ -73,13 +73,12 @@ public class DataInfoService {
 
   /**
    * 根据用户给的城市id（或国家、景点等）调用其炜哥的接口，拿到路线并填充信息
-   * 
-   * @param cityId
-   * @return
+   *
    */
-  public List<List<DayRouteInfoDTO>> queryRoute(Long cityId) {
-    // 调用其炜哥接口拿路线List 先mock一下
-    List<List<String>> multiRoutesString = routeService.route(4.0, 6.0, Arrays.asList("Japan"), false);
+
+  public List<List<DayRouteInfoDTO>> queryRoute(double minDay, double maxDay, List<String> ids, boolean isCity) {
+    // 调用其炜哥接口拿路线List
+    List<List<String>> multiRoutesString = routeService.route(minDay, maxDay, ids, isCity);
     if (multiRoutesString.isEmpty()) {
       log.warn("无可用路线");
       return null;

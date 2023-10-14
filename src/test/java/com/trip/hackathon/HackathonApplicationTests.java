@@ -10,19 +10,16 @@ import com.trip.hackathon.model.basePojo.PoiInfo;
 import com.trip.hackathon.model.basePojo.PoiTrafficInfo;
 import com.trip.hackathon.model.dto.DayRouteInfoDTO;
 import com.trip.hackathon.service.DataInfoService;
-import com.trip.hackathon.service.RoutService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static jdk.nashorn.internal.runtime.regexp.joni.Config.log;
 
 @SpringBootTest
 class HackathonApplicationTests {
@@ -52,7 +49,7 @@ class HackathonApplicationTests {
     @Test
     void testSplitRoute(){
         // 拆分路线
-        List<List<DayRouteInfoDTO>> multiRoutes = dataInfoService.queryRoute(1L);
+        List<List<DayRouteInfoDTO>> multiRoutes = dataInfoService.queryRoute(4.0, 6.0, Arrays.asList("Japan"), false);
         System.out.println(multiRoutes);
     }
 
