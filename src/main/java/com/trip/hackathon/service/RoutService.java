@@ -84,7 +84,6 @@ public class RoutService {
     private List<Scenery> choicePoi(Map<String,Integer> visitCityMap,List<Scenery> sceneryList, double minDay, double maxDay, boolean isCity) {
         List<Scenery> list=new ArrayList<>();
         int selectCity =0;
-        Map<String, List<Scenery>> collect = sceneryList.stream().collect(Collectors.groupingBy(Scenery::getCityName));
         for (int i = 0; i < sceneryList.size(); i++) {
             if(!visitCityMap.containsKey(sceneryList.get(i).getCityId())){
                 selectCity =i;
@@ -98,10 +97,8 @@ public class RoutService {
         int num =0;
         Map<String,Integer> map =new HashMap<>();
         for (int i = 0; i <sceneryList.size() ; i++) {
-            map.put(sceneryList.get(selectCity).getCityId(),1);
             if(distance[selectCity][i]<50000*minDay){
                 String poid = sceneryList.get(i).getCityId();
-                cityNum++;
                 if(map.containsKey(poid)){
                     if(day>maxDay/2.5){
                         break;
