@@ -272,16 +272,25 @@ public class DataInfoService {
       return null;
     }
     PoiTrafficInfo poiTrafficInfo = poiTrafficInfoMap.get(info.getPoiId()).get(next.getPoiId());
-    if (poiTrafficInfo == null) {
-      return null;
-    }
     Traffic traffic = new Traffic();
-    traffic.setDepartPoiId(poiTrafficInfo.getFromPoiId());
-    traffic.setArrivePoiid(poiTrafficInfo.getToPoiId());
-    traffic.setDriveTime(poiTrafficInfo.getDriveTime());
-    traffic.setDriveDistance(poiTrafficInfo.getDriveDistance());
-    traffic.setWalkTime(poiTrafficInfo.getWalkTime());
-    traffic.setWalkDistance(poiTrafficInfo.getWalkDistance());
+    traffic.setDepartPoiId(info.getPoiId());
+    traffic.setArrivePoiid(next.getPoiId());
+    if (poiTrafficInfo == null) {
+      Long distance = caculateDistance(info,next);
+      // 60km/h = 16.66666666666m/s
+      Long dirveTime = (long) (distance / 16.666666d);
+      // 5KM/h = 1.4m/s
+      Long walkTime = (long) (distance / 1.4);
+      traffic.setDriveTime(dirveTime);
+      traffic.setDriveDistance(distance);
+      traffic.setWalkTime(walkTime);
+      traffic.setWalkDistance(distance);
+    } else {
+      traffic.setDriveTime(poiTrafficInfo.getDriveTime());
+      traffic.setDriveDistance(poiTrafficInfo.getDriveDistance());
+      traffic.setWalkTime(poiTrafficInfo.getWalkTime());
+      traffic.setWalkDistance(poiTrafficInfo.getWalkDistance());
+    }
     return traffic;
   }
 
@@ -290,21 +299,31 @@ public class DataInfoService {
   }
 
   /**
-   * 基于谷歌经纬度计算行驶时间 60km/h 进行估计
+   * 基于高德经纬度计算行驶时间 60km/h 进行估计
    * 
    * @param from
    * @param to
    * @return
    */
   private Long caculateDriveTime(PoiInfo from, PoiInfo to) {
-    GlobalCoordinates source = new GlobalCoordinates(from.getGoogleLatitude(), from.getGoogleLongitude());
-    GlobalCoordinates target = new GlobalCoordinates(to.getGoogleLatitude(), to.getGoogleLongitude());
+    GlobalCoordinates source = new GlobalCoordinates(from.getGaodeLatitude(), from.getGaodeLongitude());
+    GlobalCoordinates target = new GlobalCoordinates(to.getGaodeLatitude(), to.getGaodeLongitude());
     // 单位是米
     double distance =
         new GeodeticCalculator().calculateGeodeticCurve(Ellipsoid.Sphere, source, target).getEllipsoidalDistance();
     // 60km/h = 16.66666666666m/s
     double usedTime = distance / 16.666666d;
     return (long) usedTime;
+  }
+
+  private Long caculateDistance(PoiInfo from, PoiInfo to) {
+    GlobalCoordinates source = new GlobalCoordinates(from.getGaodeLatitude(), from.getGaodeLongitude());
+    GlobalCoordinates target = new GlobalCoordinates(to.getGaodeLatitude(), to.getGaodeLongitude());
+    // 单位是米
+    double distance =
+            new GeodeticCalculator().calculateGeodeticCurve(Ellipsoid.Sphere, source, target).getEllipsoidalDistance();
+
+    return (long) distance;
   }
 
 }
