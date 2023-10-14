@@ -56,6 +56,8 @@ public class DataInfoService {
    */
   private static Map<Long, Map<Long, PoiTrafficInfo>> poiTrafficInfoMap;
 
+
+
   /**
    * 载入
    */
@@ -66,6 +68,7 @@ public class DataInfoService {
       poiInfoMap = mapper.readValue(new File("热门城市部分POI数据0926.json"), new TypeReference<Map<Long, PoiInfo>>() {});
       poiTrafficInfoMap = mapper.readValue(new File("热门城市部分小交通信息0926v1.json"),
           new TypeReference<Map<Long, Map<Long, PoiTrafficInfo>>>() {});
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -77,6 +80,7 @@ public class DataInfoService {
    */
 
   public List<List<DayRouteInfoDTO>> queryRoute(double minDay, double maxDay, List<String> ids, boolean isCity) {
+
     // 调用其炜哥接口拿路线List
     List<List<String>> multiRoutesString = routeService.route(minDay, maxDay, ids, isCity);
     if (multiRoutesString.isEmpty()) {
@@ -199,7 +203,7 @@ public class DataInfoService {
       }
 
       DayRouteInfoDTO dayRouteInfoDTO = new DayRouteInfoDTO();
-      dayRouteInfoDTO.setTitle(generateTitle(i+1));
+      dayRouteInfoDTO.setTitle(generateTitle(i + 1));
       dayRouteInfoDTO.setName(generateCityName(poiDetailList));
       dayRouteInfoDTO.setDetail(poiDetailList);
       dayRouteList.add(dayRouteInfoDTO);
@@ -229,6 +233,8 @@ public class DataInfoService {
     poi.setMaxPlayTime(info.getMaxRecommendedPlayHour());
     poi.setTraffic(trafficCreator(info, nextPoi));
     poi.setOpenDateInfoList(info.getOpenDateInfo());
+    poi.setGaodeLongitude(String.valueOf(info.getGaodeLongitude()));
+    poi.setGaodeLatitude(String.valueOf(info.getGaodeLatitude()));
     return poi;
   }
 

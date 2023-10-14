@@ -66,4 +66,14 @@ public class POI {
    * 开放日期信息
    */
   private List<OpenDateRange> openDateInfoList;
+
+  /**
+   * 经度
+   */
+  private String gaodeLongitude;
+
+  /**
+   * 维度
+   */
+  private String gaodeLatitude;
 }
