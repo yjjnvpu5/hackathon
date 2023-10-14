@@ -29,6 +29,9 @@ public class RoutService {
     }
 
     public List<List<String>> route(double minDay, double maxDay, List<String> ids, boolean isCity) {
+        if (CollectionUtils.isEmpty(sceneryList)) {
+            init();
+        }
         Map<String,Integer> visitCityMap =new HashMap<>();
         if(isCity){
             return Collections.singletonList(handleOneWay(visitCityMap,minDay, maxDay, ids, isCity));
@@ -45,9 +48,6 @@ public class RoutService {
 
 
     public List<String> handleOneWay(Map<String,Integer> visitCityMap,double minDay, double maxDay, List<String> ids, boolean isCity) {
-        if (CollectionUtils.isEmpty(sceneryList)) {
-            init();
-        }
         ACO aco = new ACO();
         List<Scenery> list = getScenery(visitCityMap,ids,isCity, minDay, maxDay);
         if(CollectionUtils.isEmpty(list)){
@@ -81,6 +81,7 @@ public class RoutService {
     private List<Scenery> choicePoi(Map<String,Integer> visitCityMap,List<Scenery> sceneryList, double minDay, double maxDay, boolean isCity) {
         List<Scenery> list=new ArrayList<>();
         int selectCity =0;
+        Map<String, List<Scenery>> collect = sceneryList.stream().collect(Collectors.groupingBy(Scenery::getCityName));
         for (int i = 0; i < sceneryList.size(); i++) {
             if(!visitCityMap.containsKey(sceneryList.get(i).getCityId())){
                 selectCity =i;
@@ -94,8 +95,10 @@ public class RoutService {
         int num =0;
         Map<String,Integer> map =new HashMap<>();
         for (int i = 0; i <sceneryList.size() ; i++) {
+            map.put(sceneryList.get(selectCity).getCityId(),1);
             if(distance[selectCity][i]<50000*minDay){
                 String poid = sceneryList.get(i).getCityId();
+                cityNum++;
                 if(map.containsKey(poid)){
                     if(day>maxDay/2.5){
                         break;
