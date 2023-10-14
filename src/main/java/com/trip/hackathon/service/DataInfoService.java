@@ -135,7 +135,8 @@ public class DataInfoService {
         // 天数 + 1
         dayCount++;
         i++;
-      } else {
+      }
+      else {
         // 从当前Poi作为起点向后遍历，构建一天的行程
 
         List<POI> poiDetailList = new ArrayList<>();
@@ -175,6 +176,10 @@ public class DataInfoService {
         dayCount++;
       }
     }
+    dayRouteList.stream().forEach(route -> {
+      List<POI> detail = route.getDetail();
+      detail.get(detail.size() - 1).setTraffic(null);
+    });
     return dayRouteList;
   }
 
