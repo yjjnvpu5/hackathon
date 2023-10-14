@@ -121,6 +121,16 @@ public class DataInfoService {
     for (int i = 0; i < poiList.size();) {
       PoiInfo poiInfo = poiList.get(i);
       PoiInfo nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
+
+      // 特殊逻辑处理，如果当前景点的最小游玩时间<=3 且下一个景点的最小游玩时间>=12 则把当前景点塞到前一天的行程列表中
+      if (i + 1 < poiList.size() && i != 0 && poiInfo.getMinRecommendedPlayHour() <= 3
+          && nextPoiInfo.getMinRecommendedPlayHour() >= 12) {
+        dayRouteList.get(dayRouteList.size() - 1).getDetail().add(poiMapper(poiInfo, nextPoiInfo));
+        i++;
+        poiInfo = poiList.get(i);
+        nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
+      }
+
       double avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
 
       if (avgPlayTime >= MAX_PLAY_HOUR) {
@@ -135,8 +145,7 @@ public class DataInfoService {
         // 天数 + 1
         dayCount++;
         i++;
-      }
-      else {
+      } else {
         // 从当前Poi作为起点向后遍历，构建一天的行程
 
         List<POI> poiDetailList = new ArrayList<>();
@@ -149,23 +158,29 @@ public class DataInfoService {
 
           // 没有后续POI则结束
           i++;
-          if (i >= poiList.size() - 1) {
+          if (nextPoiInfo == null) {
             break;
           }
+
           poiInfo = poiList.get(i);
-          nextPoiInfo = poiList.get(i + 1);
+          nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
 
           avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
 
-          PoiTrafficInfo poiTrafficInfo =
-              poiTrafficInfoMap.get(poiInfo.getPoiId()).getOrDefault(nextPoiInfo.getPoiId(), null);
-          Long driveTime;
-          if (poiTrafficInfo != null) {
-            driveTime = poiTrafficInfo.getDriveTime();
+          if (nextPoiInfo != null) {
+            PoiTrafficInfo poiTrafficInfo =
+                poiTrafficInfoMap.get(poiInfo.getPoiId()).getOrDefault(nextPoiInfo.getPoiId(), null);
+
+            Long driveTime;
+            if (poiTrafficInfo != null) {
+              driveTime = poiTrafficInfo.getDriveTime();
+            } else {
+              driveTime = caculateDriveTime(poiInfo, nextPoiInfo);
+            }
+            totalUseTime = totalUseTime + avgPlayTime + second2hour(driveTime);
           } else {
-            driveTime = caculateDriveTime(poiInfo, nextPoiInfo);
+            totalUseTime = totalUseTime + avgPlayTime;
           }
-          totalUseTime = totalUseTime + avgPlayTime + second2hour(driveTime);
         }
 
         DayRouteInfoDTO singlePoiDayRoute = new DayRouteInfoDTO();
@@ -176,6 +191,8 @@ public class DataInfoService {
         dayCount++;
       }
     }
+
+    // 每天最后一个景点的交通信息为空
     dayRouteList.stream().forEach(route -> {
       List<POI> detail = route.getDetail();
       detail.get(detail.size() - 1).setTraffic(null);
