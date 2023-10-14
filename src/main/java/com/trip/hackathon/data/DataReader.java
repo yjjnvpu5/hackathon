@@ -36,7 +36,7 @@ public class DataReader {
                 scenery.setLng(Double.parseDouble(values[12]));
                 scenery.setLat(Double.parseDouble(values[13]));
                 scenery.setVisitDay(values[6].equals("NULL")?0.2:
-                        new BigDecimal(values[6]).compareTo(BigDecimal.valueOf(9))>0?9.0
+                        new BigDecimal(values[6]).compareTo(BigDecimal.valueOf(9))>0?0.375
                     :new BigDecimal(values[6]).divide(BigDecimal.valueOf(24),3, BigDecimal.ROUND_HALF_UP).doubleValue());
                 sceneryList.add(scenery);
             }
