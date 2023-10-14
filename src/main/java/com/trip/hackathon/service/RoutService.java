@@ -93,11 +93,15 @@ public class RoutService {
         }
         double[][] distance = DistanceUtil.distance(distanceMap, sceneryList);
         double day=0.0;
-        int cityNum =0;
-        int num =0;
+        int cityNum =1;
+        int num =1;
+        Scenery first = sceneryList.get(selectCity);
         Map<String,Integer> map =new HashMap<>();
+        day +=first.getVisitDay();
+        list.add(first);
+        map.put(first.getCityId(),1);
         for (int i = 0; i <sceneryList.size() ; i++) {
-            if(distance[selectCity][i]<50000*minDay){
+            if(i!=selectCity&&distance[selectCity][i]<50000*minDay){
                 String poid = sceneryList.get(i).getCityId();
                 if(map.containsKey(poid)){
                     if(day>maxDay/2.5){
