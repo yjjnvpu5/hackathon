@@ -7,6 +7,7 @@ import com.trip.hackathon.data.DataReader;
 import com.trip.hackathon.model.Scenery;
 import com.trip.hackathon.model.dto.DayRouteInfoDTO;
 import com.trip.hackathon.service.DataInfoService;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,11 +48,13 @@ public class RouteController {
   public void init0() throws IOException {
     ObjectMapper mapper = new ObjectMapper();
     CITY_CODE_NAME_DICT = DataReader.readScenery("./热门城市部分POI数据0926.csv").values().stream().flatMap(e -> e.stream())
-        .collect(Collectors.toMap(e -> e.getCityName(), e -> e.getCityId(), (k1, k2) -> k1));
-
+        .collect(Collectors.toMap(e -> e.getCityName().trim(), e -> e.getCityId(), (k1, k2) -> k1));
+    System.out.println("CITY_CODE_NAME_DICT Size=" + CITY_CODE_NAME_DICT.size());
     countryNameMap = mapper.readValue(new File("国家中英文对照.json"), new TypeReference<Map<String, String>>() {});
+    System.out.println("countryNameMap Size=" + countryNameMap.size());
   }
 
+  @ToString
   static class Req {
     double minDay;
     double maxDay;
@@ -84,7 +88,7 @@ public class RouteController {
 
   @PostMapping("run")
   public List<List<DayRouteInfoDTO>> queryRouteList(@RequestBody Req req) {
-
+    System.out.println(req.toString());
     List<String> realCityIdList = new ArrayList<>();
     boolean isCity = false;
     for (String c : req.getTargetNames()) {
@@ -98,6 +102,7 @@ public class RouteController {
     } else {
       req.targetNames = req.targetNames.stream().map( n->countryNameMap.get(n)).filter(Objects::nonNull).collect(Collectors.toList());
     }
+    System.out.println("before invoke service: CITY_CODE size="+ CITY_CODE_NAME_DICT.size() + ", iscity=" + isCity + ", targetNames=" + req.getTargetNames().toString() +"## "+"key: " +CITY_CODE_NAME_DICT.keySet());
     List<List<DayRouteInfoDTO>> lists = dataInfoService.queryRoute(req.minDay, req.maxDay, req.targetNames, isCity);
     return lists;
   }

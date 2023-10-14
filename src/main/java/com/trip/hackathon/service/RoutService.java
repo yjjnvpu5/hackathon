@@ -51,6 +51,7 @@ public class RoutService {
         ACO aco = new ACO();
         List<Scenery> list = getScenery(visitCityMap,ids,isCity, minDay, maxDay);
         if(CollectionUtils.isEmpty(list)){
+            System.out.println("getScenery empty");
             return Collections.emptyList();
         }
         List<Scenery> sortList = list.stream().sorted(Comparator.comparing(Scenery::getHot).reversed()).collect(Collectors.toList());
@@ -66,6 +67,7 @@ public class RoutService {
             ids.forEach(id -> {
                 list.addAll(sceneryList.get(id));
             });
+            System.out.println("getScenery prepare city size: " + ids.size());
         } else {
             ids.forEach(id -> {
                 List<String> cityIds = countryMap.get(id);
@@ -75,6 +77,7 @@ public class RoutService {
             });
         }
         List<Scenery> sortList = list.stream().sorted(Comparator.comparing(Scenery::getHot).reversed()).collect(Collectors.toList());
+        System.out.println("geScenery prepare size： " + sortList.size());
         return choicePoi(visitCityMap,sortList,minDay,maxDay,isCity);
     }
 

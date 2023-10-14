@@ -3,8 +3,11 @@ package com.trip.hackathon.data;
 import com.trip.hackathon.model.Scenery;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +19,7 @@ public class DataReader {
 
     public static Map<String,List<Scenery>> readScenery(String filename) {
         List<Scenery> sceneryList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filename)), "UTF-8"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -43,7 +46,7 @@ public class DataReader {
 
     public static Map<String,List<String>> readCountry(String filename) {
         Map<String,List<String>> map =new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filename)), "UTF-8"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
@@ -67,7 +70,7 @@ public class DataReader {
 
     public static Map<String,String> readDis(String filename) {
         Map<String,String> map =new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filename)), "UTF-8"))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
