@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,7 +41,7 @@ public class DataInfoService {
   @Autowired
   RoutService routeService;
 
-  private static final double MAX_PLAY_HOUR = 9;
+  private static final double MAX_PLAY_HOUR = 7;
 
   /**
    * 热门城市信息
@@ -122,19 +124,22 @@ public class DataInfoService {
       PoiInfo poiInfo = poiList.get(i);
       PoiInfo nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
 
-      // 特殊逻辑处理，如果当前景点的最小游玩时间<=3 且下一个景点的最小游玩时间>=12 则把当前景点塞到前一天的行程列表中
+      // 特殊逻辑处理，如果当前景点的最小游玩时间<=3 且下一个景点的最小游玩时间>=12 则把当前景点塞到前一天（不能为第一天）的行程列表中
       if (i + 1 < poiList.size() && i != 0 && poiInfo.getMinRecommendedPlayHour() <= 3
           && nextPoiInfo.getMinRecommendedPlayHour() >= 12) {
-        dayRouteList.get(dayRouteList.size() - 1).getDetail().add(poiMapper(poiInfo, nextPoiInfo));
-        i++;
-        poiInfo = poiList.get(i);
-        nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
+
+        List<POI> lastDayPoiList = dayRouteList.get(dayRouteList.size() - 1).getDetail();
+        // 当前景点需要和前一天的景点同城市才能塞
+        if (lastDayPoiList.get(lastDayPoiList.size() - 1).getDestinationId().equals(poiInfo.getCityId())) {
+          dayRouteList.get(dayRouteList.size() - 1).getDetail().add(poiMapper(poiInfo, nextPoiInfo));
+          i++;
+          poiInfo = poiList.get(i);
+          nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
+        }
       }
 
-      double avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
-
-      if (avgPlayTime >= MAX_PLAY_HOUR) {
-        // 超过一天的话当天就只玩该景点
+      if (poiInfo.getMinRecommendedPlayHour() >= MAX_PLAY_HOUR) {
+        // 该景点最小游玩超过一天的话当天就只玩该景点
         DayRouteInfoDTO singlePoiDayRoute = new DayRouteInfoDTO();
         singlePoiDayRoute.setTitle(generateTitle(dayCount));
         singlePoiDayRoute.setName(poiInfo.getCityName());
@@ -147,40 +152,45 @@ public class DataInfoService {
         i++;
       } else {
         // 从当前Poi作为起点向后遍历，构建一天的行程
-
         List<POI> poiDetailList = new ArrayList<>();
-        // 总用时
+
+        double avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
         double totalUseTime = avgPlayTime;
 
-        while (totalUseTime < MAX_PLAY_HOUR) {
+        while (true) {
           // 加入当天的POI列表
           poiDetailList.add(poiMapper(poiInfo, nextPoiInfo));
 
-          // 没有后续POI则结束
-          i++;
-          if (nextPoiInfo == null) {
-            break;
-          }
-
-          poiInfo = poiList.get(i);
-          nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
-
-          avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
-
+          // 总用时（当前景点游玩时间 + 当前景点到下一个景点的交通时间
+          double driveTime = 0;
           if (nextPoiInfo != null) {
             PoiTrafficInfo poiTrafficInfo =
                 poiTrafficInfoMap.get(poiInfo.getPoiId()).getOrDefault(nextPoiInfo.getPoiId(), null);
-
-            Long driveTime;
             if (poiTrafficInfo != null) {
-              driveTime = poiTrafficInfo.getDriveTime();
+              driveTime = second2hour(poiTrafficInfo.getDriveTime());
             } else {
-              driveTime = caculateDriveTime(poiInfo, nextPoiInfo);
+              driveTime = second2hour(caculateDriveTime(poiInfo, nextPoiInfo));
             }
-            totalUseTime = totalUseTime + avgPlayTime + second2hour(driveTime);
-          } else {
-            totalUseTime = totalUseTime + avgPlayTime;
           }
+
+          totalUseTime = totalUseTime + driveTime;
+          // 超时、跨城市、没有后续POI 则结束
+          if (totalUseTime >= MAX_PLAY_HOUR || nextPoiInfo == null
+              || !poiInfo.getCityId().equals(nextPoiInfo.getCityId())) {
+            i++;
+            break;
+          }
+
+          // 向下执行
+          i++;
+          poiInfo = poiList.get(i);
+          nextPoiInfo = i == poiList.size() - 1 ? null : poiList.get(i + 1);
+
+          if (poiInfo.getMinRecommendedPlayHour() > 12) {
+            break;
+          }
+          avgPlayTime = (poiInfo.getMinRecommendedPlayHour() + poiInfo.getMaxRecommendedPlayHour()) / 2;
+          totalUseTime = totalUseTime + avgPlayTime;
         }
 
         DayRouteInfoDTO singlePoiDayRoute = new DayRouteInfoDTO();
@@ -197,6 +207,12 @@ public class DataInfoService {
       List<POI> detail = route.getDetail();
       detail.get(detail.size() - 1).setTraffic(null);
     });
+
+    // 按城市排序
+    dayRouteList = dayRouteList.stream().sorted(Comparator.comparing(DayRouteInfoDTO::getName)).collect(Collectors.toList());
+    for (int i = 0;i<dayRouteList.size();i++){
+      dayRouteList.get(i).setTitle(String.format("第%s天",i+1));
+    }
     return dayRouteList;
   }
 
@@ -276,7 +292,7 @@ public class DataInfoService {
     traffic.setDepartPoiId(info.getPoiId());
     traffic.setArrivePoiid(next.getPoiId());
     if (poiTrafficInfo == null) {
-      Long distance = caculateDistance(info,next);
+      Long distance = caculateDistance(info, next);
       // 60km/h = 16.66666666666m/s
       Long dirveTime = (long) (distance / 16.666666d);
       // 5KM/h = 1.4m/s
@@ -321,7 +337,7 @@ public class DataInfoService {
     GlobalCoordinates target = new GlobalCoordinates(to.getGaodeLatitude(), to.getGaodeLongitude());
     // 单位是米
     double distance =
-            new GeodeticCalculator().calculateGeodeticCurve(Ellipsoid.Sphere, source, target).getEllipsoidalDistance();
+        new GeodeticCalculator().calculateGeodeticCurve(Ellipsoid.Sphere, source, target).getEllipsoidalDistance();
 
     return (long) distance;
   }
